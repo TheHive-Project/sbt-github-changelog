@@ -1,6 +1,6 @@
 package org.thp.ghcl
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{ Files, Path, Paths }
 
 import scala.io.Source
 import scala.util.matching.Regex

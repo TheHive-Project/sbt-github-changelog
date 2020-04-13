@@ -40,27 +40,27 @@ object SbtGithubChangelogPlugin extends AutoPlugin {
     githubProject := Git.getGithubProject(baseDirectory.value.toPath),
     issueRenderer := ChangeLog.issueRenderer,
     issueTypes := Seq(
-      "Fixed bugs" -> Seq("bug"),
-      "Implemented enhancements" -> Seq("enhancement", "feature request")
-    ),
+        "Fixed bugs"               -> Seq("bug"),
+        "Implemented enhancements" -> Seq("enhancement", "feature request")
+      ),
     defaultIssueType := "Closed issues",
     milestoneRenderer := ChangeLog
-      .milestoneRenderer(
-        issueRenderer.value,
-        issueTypes.value,
-        defaultIssueType.value
-      ),
+        .milestoneRenderer(
+          issueRenderer.value,
+          issueTypes.value,
+          defaultIssueType.value
+        ),
     changeLogRenderer := ChangeLog.changeLogRenderer(milestoneRenderer.value),
     changeLog := ChangeLog.writeChangeLog(
-      changelogFile.value,
-      Github.getMilestones(
-        token.value,
-        githubProject.value,
-        maxMilestones.value,
-        maxIssues.value
+        changelogFile.value,
+        Github.getMilestones(
+          token.value,
+          githubProject.value,
+          maxMilestones.value,
+          maxIssues.value
+        ),
+        changeLogRenderer.value
       ),
-      changeLogRenderer.value
-    ),
     maxMilestones := 100,
     maxIssues := 100
   )

@@ -18,10 +18,7 @@ case class Issue(number: Int, title: String, url: String, labels: Seq[String]) {
     }
 }
 
-case class Milestone(title: String,
-                     date: TemporalAccessor,
-                     url: String,
-                     issues: Seq[Issue])
+case class Milestone(title: String, date: TemporalAccessor, url: String, issues: Seq[Issue])
 
 abstract class Renderer[T] {
   def write(t: T): String
@@ -30,9 +27,11 @@ abstract class Renderer[T] {
 object ChangeLog {
   val issueRenderer: Renderer[Issue] = (issue: Issue) =>
     s"- ${issue.title} [\\#${issue.number}](${issue.url})"
-  def milestoneRenderer(issueRenderer: Renderer[Issue],
-                        issueTypes: Seq[(String, Seq[String])],
-                        defaultIssueType: String): Renderer[Milestone] =
+  def milestoneRenderer(
+      issueRenderer: Renderer[Issue],
+      issueTypes: Seq[(String, Seq[String])],
+      defaultIssueType: String
+  ): Renderer[Milestone] =
     (milestone: Milestone) =>
       milestone.issues
         .groupBy(_.`type`(issueTypes))
@@ -47,10 +46,10 @@ object ChangeLog {
             .format(milestone.date)})\n\n",
           "\n\n",
           "\n"
-      )
+        )
 
   def changeLogRenderer(
-    milestoneRenderer: Renderer[Milestone]
+      milestoneRenderer: Renderer[Milestone]
   ): Renderer[Seq[Milestone]] =
     (milestones: Seq[Milestone]) =>
       s"""# Change Log
@@ -59,9 +58,11 @@ object ChangeLog {
            .map(milestoneRenderer.write)
            .mkString("\n")}""".stripMargin
 
-  def writeChangeLog(file: File,
-                     milestones: Seq[Milestone],
-                     changeLogRenderer: Renderer[Seq[Milestone]]): File = {
+  def writeChangeLog(
+      file: File,
+      milestones: Seq[Milestone],
+      changeLogRenderer: Renderer[Seq[Milestone]]
+  ): File = {
     Files.write(
       file.toPath,
       changeLogRenderer.write(milestones).getBytes(StandardCharsets.UTF_8)
