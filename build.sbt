@@ -3,7 +3,7 @@ lazy val `sbt-github-changelog` = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-github-changelog",
-    version := "0.1.0",
+    version := "0.2.0",
     organization := "org.thehive-project",
     organizationName := "TheHive project",
     organizationHomepage := Some(url("http://thehive-project.org/")),
@@ -38,10 +38,6 @@ lazy val `sbt-github-changelog` = project
         "-Ywarn-unused-import"
       ),
     pomIncludeRepository := { _ => false },
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-      else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
+    publishTo := sonatypePublishToBundle.value,
     publishMavenStyle := true
   )

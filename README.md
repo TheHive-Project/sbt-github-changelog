@@ -8,7 +8,7 @@ This plugin requires sbt 1.3+
 
 Add the following line in your `project/plugins.sbt` file:
 ```sbt
-addSbtPlugin("org.thehive-project" % "sbt-github-changelog" % "0.1.0")
+addSbtPlugin("org.thehive-project" % "sbt-github-changelog" % "0.2.0")
 ```
 
 You need to [generate a Github authentication token](https://github.com/settings/tokens/new?description=sbt-github-changelog) and store it in the file `~/.github/token`
