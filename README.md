@@ -1,6 +1,8 @@
 # sbt-github-changelog
 sbt-github-changelog is a simple sbt plugins that generates a change log file from Github milestone content.
 
+[![Scaladex](https://index.scala-lang.org/thehive-project/sbt-github-changelog/sbt-github-changelog/latest.svg)](https://index.scala-lang.org/thehive-project/sbt-github-changelog/sbt-github-changelog/)
+
 ## How to use
 This plugin requires sbt 1.3+
 

@@ -7,10 +7,20 @@ lazy val `sbt-github-changelog` = project
     organization := "org.thehive-project",
     organizationName := "TheHive project",
     organizationHomepage := Some(url("http://thehive-project.org/")),
+    homepage := Some(url("https://github.com/TheHive-Project/sbt-github-changelog")),
+    description := "SBT plugin to generate change log file from github milestones",
     scmInfo := Some(
         ScmInfo(
           url("https://github.com/TheHive-Project/sbt-github-changelog"),
           "scm:git@github.com:TheHive-Project/sbt-github-changelog.git"
+        )
+      ),
+    developers := List(
+        Developer(
+          id = "toom",
+          name = "Thomas",
+          email = "thomas@thehive-project.org",
+          url = url("https://github.com/To-om")
         )
       ),
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
