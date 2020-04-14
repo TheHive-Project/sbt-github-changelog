@@ -13,6 +13,8 @@ object SbtGithubChangelogPlugin extends AutoPlugin {
       taskKey[(String, String)](
         "Owner and project name (\"TheHive-Project\" -> \"sbt-github-changelog\" for example)"
       )
+    lazy val issueFilter     = settingKey[Issue => Boolean]("Issue filter")
+    lazy val milestoneFilter = settingKey[Milestone => Boolean]("Milestone filter")
     lazy val issueRenderer =
       settingKey[Renderer[Issue]]("Describe how an issue is rendered")
     lazy val milestoneRenderer =
@@ -38,6 +40,8 @@ object SbtGithubChangelogPlugin extends AutoPlugin {
     token := Github.readToken(tokenFile.value),
     changelogFile := file("CHANGELOG.md"),
     githubProject := Git.getGithubProject(baseDirectory.value.toPath),
+    issueFilter := (_ => true),
+    milestoneFilter := (_ => true),
     issueRenderer := ChangeLog.issueRenderer,
     issueTypes := Seq(
         "Fixed bugs"               -> Seq("bug"),
@@ -53,12 +57,17 @@ object SbtGithubChangelogPlugin extends AutoPlugin {
     changeLogRenderer := ChangeLog.changeLogRenderer(milestoneRenderer.value),
     changeLog := ChangeLog.writeChangeLog(
         changelogFile.value,
-        Github.getMilestones(
-          token.value,
-          githubProject.value,
-          maxMilestones.value,
-          maxIssues.value
-        ),
+        Github
+          .getMilestones(
+            token.value,
+            githubProject.value,
+            maxMilestones.value,
+            maxIssues.value
+          )
+          .collect {
+            case milestone if milestoneFilter.value(milestone) =>
+              milestone.copy(issues = milestone.issues.filter(issueFilter.value))
+          },
         changeLogRenderer.value
       ),
     maxMilestones := 100,

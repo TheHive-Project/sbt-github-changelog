@@ -38,35 +38,41 @@ issueTypes := Seq(
 If no type is found, the `defaultIssueType` is used.
 
 This plugin doesn't support pagination when it retrieves data from Github. This means that there is a maximum number of milestones (`maxMilestones`), and a maximum number of issues in milestone (`maxIssues`). Both are set to 100 by default.
- 
+
+Milestone and issue can be filtered using `milestoneFilter` and `issueFilter`:
+```sbt
+milestoneFilter := ((milestone: Milestone) => !milestone.title.contains("-RC"))
+issueFilter     := ((issue: Issue)         => !issue.labels.contains("wontfix"))
+``` 
 ## Custom rendering
 
 You can customize renderring of issue, milestone and whole change log:
 ```scala
 import org.thp.ghcl._
+
 issueRenderer := ((issue: Issue) ⇒ s"- ${issue.title} [\\#${issue.number}](${issue.url})"),
-    milestoneRenderer := { (milestone: Milestone) ⇒
-      val date = DateTimeFormatter
-        .ISO_LOCAL_DATE
-        .format(milestone.date)
-      milestone
-        .issues
-        .groupBy(_.`type`(issueTypes.value))
-        .map {
-          case (t, issues) ⇒
-            s"""**${t.getOrElse(defaultIssueType.value)}:**
-               |
-               |${issues.map(issueRenderer.value.write).mkString("\n")}""".stripMargin
-        }
-        .mkString(
-          s"## [${milestone.title}](${milestone.url}) ($date)\n\n",
-          "\n\n",
-          "\n"
-        )
-    },
-    changeLogRenderer := { (milestones: Seq[Milestone]) ⇒
-      "# Change Log\n\n" + milestones
-        .map(milestoneRenderer.value.write)
-        .mkString("\n")
+milestoneRenderer := { (milestone: Milestone) ⇒
+  val date = DateTimeFormatter
+    .ISO_LOCAL_DATE
+    .format(milestone.date)
+  milestone
+    .issues
+    .groupBy(_.`type`(issueTypes.value))
+    .map {
+      case (t, issues) ⇒
+        s"""**${t.getOrElse(defaultIssueType.value)}:**
+           |
+           |${issues.map(issueRenderer.value.write).mkString("\n")}""".stripMargin
     }
+    .mkString(
+      s"## [${milestone.title}](${milestone.url}) ($date)\n\n",
+      "\n\n",
+      "\n"
+    )
+},
+changeLogRenderer := { (milestones: Seq[Milestone]) ⇒
+  "# Change Log\n\n" + milestones
+    .map(milestoneRenderer.value.write)
+    .mkString("\n")
+}
 ```
