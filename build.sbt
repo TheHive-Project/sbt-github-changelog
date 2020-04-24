@@ -3,7 +3,7 @@ lazy val `sbt-github-changelog` = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-github-changelog",
-    version := "0.2.0",
+    version := "0.3.0",
     organization := "org.thehive-project",
     organizationName := "TheHive project",
     organizationHomepage := Some(url("http://thehive-project.org/")),
