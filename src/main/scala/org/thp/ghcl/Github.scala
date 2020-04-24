@@ -1,7 +1,9 @@
 package org.thp.ghcl
 
 import java.io.File
+import java.time.Instant
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAccessor
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{ JsPath, Json, Reads }
@@ -31,7 +33,7 @@ object Github {
 
   implicit val milestoneReads: Reads[Milestone] =
     ((JsPath \ "title").read[String] and
-    (JsPath \ "updatedAt")
+    (JsPath \ "closedAt")
       .read[String]
       .map(DateTimeFormatter.ISO_DATE_TIME.parse) and
     (JsPath \ "url").read[String] and
@@ -54,7 +56,7 @@ object Github {
          |  repository(name: "${ownerProject._2}", owner: "${ownerProject._1}") {
          |    milestones(states: CLOSED, first: $maxMilestones, orderBy: {field: UPDATED_AT, direction: DESC}) {
          |      nodes {
-         |        issues(first: $maxIssues, orderBy: {field: CREATED_AT, direction: DESC}) {
+         |        issues(first: $maxIssues) {
          |          edges {
          |            node {
          |              number
@@ -69,7 +71,7 @@ object Github {
          |          }
          |        }
          |        title
-         |        updatedAt
+         |        closedAt
          |        url
          |      }
          |    }
@@ -79,6 +81,8 @@ object Github {
 
     implicit val backend: SttpBackend[Identity, Nothing, NothingT] =
       HttpURLConnectionBackend()
+    val temporalOrdering: Ordering[TemporalAccessor] = (x: TemporalAccessor, y: TemporalAccessor) =>
+      Instant.from(x).compareTo(Instant.from(y))
 
     val response = basicRequest.auth
       .bearer(token)
@@ -86,14 +90,16 @@ object Github {
       .post(uri"https://api.github.com/graphql")
       .response(asJson(changeLogReads, IsOption.otherIsNotOption))
       .send()
-    response.body.fold(
-      error =>
-        throw new IllegalStateException(
-          s"Got ${response.code.code} ${response.statusText}",
-          error
-        ),
-      identity
-    )
+    response.body
+      .fold(
+        error =>
+          throw new IllegalStateException(
+            s"Got ${response.code.code} ${response.statusText}",
+            error
+          ),
+        identity
+      )
+      .sortBy(_.date)(temporalOrdering.reverse)
   }
 
 }
