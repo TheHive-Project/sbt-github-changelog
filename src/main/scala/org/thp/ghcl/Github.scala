@@ -1,15 +1,14 @@
 package org.thp.ghcl
 
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{JsPath, Json, Reads}
+import sttp.client._
+import sttp.client.playJson._
+
 import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAccessor
-
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{ JsPath, Json, Reads }
-import sttp.client._
-import sttp.client.playJson._
-
 import scala.io.Source
 
 object Github {
@@ -26,10 +25,13 @@ object Github {
   implicit val issueReads: Reads[Issue] =
     ((JsPath \ "node" \ "number").read[Int] and
     (JsPath \ "node" \ "title").read[String] and
+    (JsPath \ "node" \ "closedAt").readNullable[String]
+      .map(_.fold[TemporalAccessor](Instant.now)(DateTimeFormatter.ISO_DATE_TIME.parse)) and
     (JsPath \ "node" \ "url").read[String] and
     (JsPath \ "node" \ "labels" \ "nodes")
       .read[Seq[Label]]
-      .map(_.map(_.name)))(Issue.apply _)
+      .map(_.map(_.name)) and
+      Reads.pure(false))(Issue.apply _)
 
   implicit val milestoneReads: Reads[Milestone] =
     ((JsPath \ "title").read[String] and
@@ -37,7 +39,14 @@ object Github {
       .read[String]
       .map(DateTimeFormatter.ISO_DATE_TIME.parse) and
     (JsPath \ "url").read[String] and
-    (JsPath \ "issues" \ "edges").read[Seq[Issue]])(Milestone.apply _)
+    (JsPath \ "issues" \ "edges").read[Seq[Issue]] and
+    (JsPath \ "pullRequests" \ "edges").read[Seq[Issue]]).apply {
+      (title, closedAt, url, issues, pullRequests) =>
+        Milestone(title, closedAt, url, (issues ++ pullRequests.map(_.copy(isPR = true))).sortBy(_.number))
+    }
+
+  val temporalOrdering: Ordering[TemporalAccessor] = (x: TemporalAccessor, y: TemporalAccessor) =>
+    Instant.from(x).compareTo(Instant.from(y))
 
   val changeLogReads: Reads[Seq[Milestone]] = Reads[Seq[Milestone]] { js =>
     (js \ "data" \ "repository" \ "milestones" \ "nodes")
@@ -56,6 +65,21 @@ object Github {
          |  repository(name: "${ownerProject._2}", owner: "${ownerProject._1}") {
          |    milestones(states: CLOSED, first: $maxMilestones, orderBy: {field: UPDATED_AT, direction: DESC}) {
          |      nodes {
+         |        pullRequests(first: $maxIssues) {
+         |          edges {
+         |            node {
+         |              number
+         |              title
+         |              labels(first: 10) {
+         |                nodes {
+         |                  name
+         |                }
+         |              }
+         |              url
+         |              closedAt
+         |            }
+         |          }
+         |        }
          |        issues(first: $maxIssues) {
          |          edges {
          |            node {
@@ -67,6 +91,7 @@ object Github {
          |                }
          |              }
          |              url
+         |              closedAt
          |            }
          |          }
          |        }
@@ -81,8 +106,6 @@ object Github {
 
     implicit val backend: SttpBackend[Identity, Nothing, NothingT] =
       HttpURLConnectionBackend()
-    val temporalOrdering: Ordering[TemporalAccessor] = (x: TemporalAccessor, y: TemporalAccessor) =>
-      Instant.from(x).compareTo(Instant.from(y))
 
     val response = basicRequest.auth
       .bearer(token)
@@ -100,6 +123,7 @@ object Github {
         identity
       )
       .sortBy(_.date)(temporalOrdering.reverse)
+      .map(m => m.copy(issues = m.issues.take(maxIssues)))
   }
 
 }

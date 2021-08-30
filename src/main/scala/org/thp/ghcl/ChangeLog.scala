@@ -10,10 +10,10 @@ case class Label(name: String) {
   override def toString: String = name
 }
 
-case class Issue(number: Int, title: String, url: String, labels: Seq[String]) {
+case class Issue(number: Int, title: String, date: TemporalAccessor, url: String, labels: Seq[String], isPR: Boolean) {
   def `type`(issueTypes: Seq[(String, Seq[String])]): Option[String] =
     issueTypes.collectFirst {
-      case (issueType, typeLabels) if labels.exists(typeLabels.contains) =>
+      case (issueType, typeLabels) if (isPR && typeLabels.contains("isPR")) || labels.exists(typeLabels.contains) =>
         issueType
     }
 }
@@ -31,10 +31,13 @@ object ChangeLog {
       issueRenderer: Renderer[Issue],
       issueTypes: Seq[(String, Seq[String])],
       defaultIssueType: String
-  ): Renderer[Milestone] =
+  ): Renderer[Milestone] = {
+    val issueTypeOrder = issueTypes.map(_._1).zipWithIndex.toMap
     (milestone: Milestone) =>
       milestone.issues
         .groupBy(_.`type`(issueTypes))
+        .toSeq
+        .sortBy(_._1.flatMap(issueTypeOrder.get).getOrElse(Int.MaxValue))
         .map {
           case (t, issues) =>
             s"""**${t.getOrElse(defaultIssueType)}:**
@@ -47,6 +50,7 @@ object ChangeLog {
           "\n\n",
           "\n"
         )
+  }
 
   def changeLogRenderer(
       milestoneRenderer: Renderer[Milestone]
