@@ -3,7 +3,7 @@ lazy val `sbt-github-changelog` = project
   .enablePlugins(SbtPlugin)
   .settings(
     name := "sbt-github-changelog",
-    version := "0.3.0",
+    version := "0.4.0",
     organization := "org.thehive-project",
     organizationName := "TheHive project",
     organizationHomepage := Some(url("http://thehive-project.org/")),
@@ -25,8 +25,8 @@ lazy val `sbt-github-changelog` = project
       ),
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
     libraryDependencies ++= Seq(
-        "com.softwaremill.sttp.client" %% "core"      % "2.0.7",
-        "com.softwaremill.sttp.client" %% "play-json" % "2.0.7"
+        "com.softwaremill.sttp.client" %% "core"      % "2.2.9",
+        "com.softwaremill.sttp.client" %% "play-json" % "2.2.9"
       ),
     scalacOptions ++= Seq(
         "-unchecked",
