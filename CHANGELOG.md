@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.4.0](https://github.com/TheHive-Project/sbt-github-changelog/milestone/4) (2021-08-30)
+
+**Closed issues:**
+
+- Include PR in changelog [\#3](https://github.com/TheHive-Project/sbt-github-changelog/issues/3)
+
 ## [0.3.0](https://github.com/TheHive-Project/sbt-github-changelog/milestone/3) (2020-04-24)
 
 **Implemented enhancements:**

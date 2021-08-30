@@ -9,6 +9,7 @@ lazy val `sbt-github-changelog` = project
     organizationHomepage := Some(url("http://thehive-project.org/")),
     homepage := Some(url("https://github.com/TheHive-Project/sbt-github-changelog")),
     description := "SBT plugin to generate change log file from github milestones",
+    versionScheme := Some("semver-spec"),
     scmInfo := Some(
         ScmInfo(
           url("https://github.com/TheHive-Project/sbt-github-changelog"),
